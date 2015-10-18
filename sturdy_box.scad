@@ -196,11 +196,11 @@ module box_3d(){
   // Front and Back
   translate([offset_to_side, corner_radius + panel_thickness/2,panel_thickness])
       rotate([90, 0, 0]) acrylic() length_side() children(2);
-  translate([offset_to_side + side_length,case_width - corner_radius + panel_thickness/2,panel_thickness])
+  translate([offset_to_side + side_length,case_width - corner_radius - panel_thickness/2,panel_thickness])
       rotate([90, 0, 180]) acrylic() length_side() children(3);
 
   // Left and Right
-  translate([corner_radius - panel_thickness/2, offset_to_side + side_width, panel_thickness])
+  translate([corner_radius + panel_thickness/2, offset_to_side + side_width, panel_thickness])
       rotate([90, 0, 270]) acrylic() width_side() children(4);
   translate([case_length - corner_radius - panel_thickness/2, offset_to_side, panel_thickness])
       rotate([90, 0, 90]) acrylic() width_side() children(5);
