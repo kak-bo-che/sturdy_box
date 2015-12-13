@@ -94,7 +94,7 @@ module rounded_square(width, height, radius){
   }
 }
 
-module rounded_square_clamping_holes(length, width, radius, hole_size){
+module rounded_square_clamping_holes(length, width, radius, hole_size=hole_size){
   translate([radius, radius]) circle(d=hole_size);
   translate([length - radius, radius]) circle(d=hole_size);
   translate([radius, width - radius]) circle(d=hole_size);
@@ -237,37 +237,37 @@ module cut_layout(){
       corners();
 }
 
-if (flat == 1){
-  acrylic() cut_layout() {
-    translate([inner_length/2, inner_width/2])
-        text(text="Bottom", halign = "center", valign = "center");
-    translate([inner_length/2, inner_width/2])
-        text(text="Top", halign = "center", valign = "center");
-    translate([(side_length)/2, case_height/2])
-        text(text="Front", halign = "center", valign = "center");
-    translate([(side_length)/2, case_height/2])
-        text(text="Back", halign = "center", valign = "center");
+// if (flat == 1){
+//   cut_layout() {
+//     translate([inner_length/2, inner_width/2])
+//         text(text="Bottom", halign = "center", valign = "center");
+//     translate([inner_length/2, inner_width/2])
+//         text(text="Top", halign = "center", valign = "center");
+//     translate([(side_length)/2, case_height/2])
+//         text(text="Front", halign = "center", valign = "center");
+//     translate([(side_length)/2, case_height/2])
+//         text(text="Back", halign = "center", valign = "center");
 
-    translate([(side_width)/2, case_height/2])
-        text(text="Left", halign = "center", valign = "center");
-    translate([(side_width)/2, case_height/2])
-        text(text="Right", halign = "center", valign = "center");
-  }
-} else {
-  box_3d() {
-    translate([inner_length/2, inner_width/2])
-        text(text="Bottom", halign = "center", valign = "center");
-    translate([inner_length/2, inner_width/2])
-        text(text="Top", halign = "center", valign = "center");
-    translate([(side_length)/2, case_height/2])
-        text(text="Front", halign = "center", valign = "center");
-    translate([(side_length)/2, case_height/2])
-        text(text="Back", halign = "center", valign = "center");
+//     translate([(side_width)/2, case_height/2])
+//         text(text="Left", halign = "center", valign = "center");
+//     translate([(side_width)/2, case_height/2])
+//         text(text="Right", halign = "center", valign = "center");
+//   }
+// } else {
+//   box_3d() {
+//     translate([inner_length/2, inner_width/2])
+//         text(text="Bottom", halign = "center", valign = "center");
+//     translate([inner_length/2, inner_width/2])
+//         text(text="Top", halign = "center", valign = "center");
+//     translate([(side_length)/2, case_height/2])
+//         text(text="Front", halign = "center", valign = "center");
+//     translate([(side_length)/2, case_height/2])
+//         text(text="Back", halign = "center", valign = "center");
 
-    translate([(side_width)/2, case_height/2])
-        text(text="Left", halign = "center", valign = "center");
-    translate([(side_width)/2, case_height/2])
-        text(text="Right", halign = "center", valign = "center");
-  }
-}
+//     translate([(side_width)/2, case_height/2])
+//         text(text="Left", halign = "center", valign = "center");
+//     translate([(side_width)/2, case_height/2])
+//         text(text="Right", halign = "center", valign = "center");
+//   }
+// }
 
