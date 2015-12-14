@@ -194,5 +194,5 @@ function main(){
  var left = width_side([text("hello").scale([0.3, 0.3, 0.3]).translate([10,10])]);
 //   extruded = extruded.projectToOrthoNormalBasis(z0basis);
  var bottom = base(text('hello').translate([10, 10]));
-  return cut_layout([]).center();
+ return cut_layout([[],[],[],[],[],[]]).center();
 }
