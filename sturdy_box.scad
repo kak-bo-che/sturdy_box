@@ -23,7 +23,7 @@ width_slots=7;
 hole_size=3.2;
 
 // display flat or 3D
-flat=0; // [0, 1]
+flat=1; // [0, 1]
 
 /* [Hidden] */
 
