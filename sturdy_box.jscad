@@ -63,55 +63,21 @@ function explode(args){
   var center = this.get_center(solid);
 
   var new_objects = [];
+
   for (var i = 0; i < args.length; i++) {
     var bounds = args[i].getBounds();
-    var obj_center = this.get_center(args[i]);
-    var z = 0;
+    var order = 0;
     if (Math.round((bounds[0].z + bounds[1].z)/2*10) == Math.round(center.z*10)){
-      args[i] = args[i].setColor(1, 0, 0);
-      z = center.z;
-    } else if (center.distanceTo(bounds[0]) > center.distanceTo(bounds[1])){
-      console.log(bounds[0].z - bounds[1].z)
-      z = bounds[0].z;
+      order = Math.abs(origin - center.z);
+    } else if (Math.abs(center.z - bounds[0].z) > Math.abs(center.z - bounds[1].z)){
+      order = Math.abs(origin - bounds[0].z);
     } else {
-      z = bounds[1].z;
+      order = Math.abs(origin - bounds[1].z);
     }
-    var order = Math.abs(origin - z);
-    var z_dist = center.z - obj_center.z;
-    var z_size = Math.abs(bounds[1].z - bounds[0].z);
     new_objects.push(args[i].translate([0,0, 2.5*(order)]));
-
-//    new_objects.push(args[i].translate([0,0,3*(z_size/2 + z*z_size/2)]));
   };
   return new_objects;
 }
-
-// function explode(args){
-//   // this.get_center = function(obj){
-//   //   var bounds = obj.getBounds();
-//   //   return new CSG.Vector3D((bounds[1].x - bounds[0].x)/2,
-//   //                           (bounds[1].y - bounds[0].y)/2,
-//   //                           (bounds[1].z - bounds[0].z)/2);
-//   // }
-//   // var solid = union(args);
-//   // var center = this.get_center(solid);
-//   var new_objects = [];
-//   for (var i = 0; i < args.length; i++) {
-//     // var obj_center = this.get_center(args[i])
-//     // var x = Math.abs(center.x - obj_center.x);
-//     // var y = Math.abs(center.y - obj_center.y);
-
-//     //var z = center.z - obj_center.z;
-//     var bounds = args[i].getBounds();
-//     var z = bounds[0].z
-//     var z_size = Math.abs(bounds[1].z - bounds[0].z);
-//     //console.log(obj_center.z);
-//     console.log(z_size);
-//     new_objects.push(args[i].translate([0,0,2*z*z_size]));
-//     //sohcahtoa
-//   };
-//   return new_objects;
-// }
 
 function sides(length, width, height){
     this.top = function(){return []}
@@ -165,7 +131,7 @@ function sturdy_box(params){
     // clearance between parts for cutting
     this.part_separation=10;
 
-    // Convienience value
+    // Convenience value
     this.offset_to_side = 1.5*this.corner_radius;
 
     // Calculated values for inside dimensions of box
@@ -211,6 +177,14 @@ function sturdy_box(params){
                                                                             .translate([0,0,head_height/3])),
        circle({r:screw_diameter/2}).center().extrude({offset:[0,0,-Math.floor(this.case_height/2)]})
       ).setColor(0.5,0.5,0.5);
+    }
+
+    this.standoff = function(){
+      var hex_radius = 5.26/2;
+      return circle({r:hex_radius, fn:6}).center()
+                  .subtract(circle({r:this.hole_size}).center())
+                  .extrude({offset:[0,0,this.standoff_height]})
+                  .center().setColor(1, 0.75, 0);
     }
 
     this.corner_piece = function(hex_hole){
@@ -348,23 +322,23 @@ function sturdy_box(params){
         var first_offset = floor(obj.corner_pieces/2)*obj.panel_thickness;
         for(x=0; x < Math.floor(obj.corner_pieces/2); x++){
             stack.push(obj.corner_piece()
-                .acrylic(obj.panel_thickness)
-                .translate([0,0,x*obj.panel_thickness]));
+                          .acrylic(obj.panel_thickness)
+                          .translate([0,0,x*obj.panel_thickness]));
         }
 
         for(x=0; x < Math.ceil(obj.corner_pieces/2); x++){
             stack.push(obj.corner_piece()
-                .acrylic(obj.panel_thickness)
-                .translate([0,0,first_offset + hex_offset + x*obj.panel_thickness]));
+                          .acrylic(obj.panel_thickness)
+                          .translate([0,0,first_offset + hex_offset + x*obj.panel_thickness]));
         }
 
         // hex
         for(x=0; x < obj.hex_corners; x++){
             stack.push(obj.corner_piece(true)
-                .acrylic(obj.panel_thickness)
-                .setColor(1,0.5,0.3, 0.9)
-                .translate([0,0,first_offset + x*obj.panel_thickness]));
+                          .acrylic(obj.panel_thickness)
+                          .translate([0,0,first_offset + x*obj.panel_thickness]));
         }
+        stack.push(obj.standoff().rotateZ(15).translate([0,0,(obj.case_height)/2]));
         return stack;
       }
       var box = []
@@ -402,17 +376,18 @@ function sturdy_box(params){
             .rotateX(90).rotateZ(90)
             .translate([this.case_length - this.corner_radius - this.panel_thickness/2, this.offset_to_side, this.panel_thickness]))
 
-      box.push(this.clamping_holes(this.screw().rotateX(180))); //.translate([-corner_length/2, -corner_width/2]));
+      box.push(this.clamping_holes(this.screw().rotateX(180)));
       box.push(this.clamping_holes(this.screw()).translate([0,0,this.case_height + 2*this.panel_thickness]));
+
       // Corners
-         box = box.concat(
-          corner_stack(this).map(
-            function(piece){return piece.translate([this.corner_radius,
-                                                    this.corner_radius,
-                                                    this.panel_thickness])},
-            this
-            )
-         )
+           box = box.concat(
+            corner_stack(this).map(
+              function(piece){return piece.translate([this.corner_radius,
+                                                      this.corner_radius,
+                                                      this.panel_thickness])},
+              this
+              )
+           )
          box = box.concat(
           corner_stack(this).map(
             function(piece){return piece.rotateZ(90)
