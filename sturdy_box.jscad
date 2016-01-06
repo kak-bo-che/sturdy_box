@@ -32,7 +32,7 @@ var parameters = [
 
     { name: 'Presentation', type: 'group', caption: 'Presentation' },
     { name: 'quality', type: 'choice', caption: 'Quality', values: [0, 1], captions: ["Draft","High"], initial: 0 },
-    { name: 'flat', caption: 'Display:', type: 'choice', values: [0, 1, 2], initial: 2, captions: ["Flat", "3D", "Exploded"]},
+    { name: 'flat', caption: 'Display:', type: 'choice', values: [0, 1, 2], initial: 0, captions: ["Flat", "3D", "Exploded"]},
   ]
   return parameters;
 }
