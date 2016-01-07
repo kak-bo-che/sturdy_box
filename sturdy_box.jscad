@@ -41,6 +41,7 @@ function main(params){
   arc_resolution=(params.quality == "1")? 64:12;
   params.arc_resolution = arc_resolution
   var box = new sturdy_box(params);
+
   if (params.flat === '0'){
     return box.cut_layout().center();
   } else if (params.flat === '1') {
@@ -48,6 +49,15 @@ function main(params){
   } else {
     return box.box_3d(true).center();
   }
+}
+function text(my_string){
+  var z0basis =  CSG.OrthoNormalBasis.Z0Plane();
+  var l = vector_text(0,0,my_string);   // l contains a list of polylines to be drawn
+  var o = [];
+  l.forEach(function(pl) {
+     o.push(rectangular_extrude(pl, {w: 1, h: 1}).projectToOrthoNormalBasis(z0basis));   // extrude it to 3D
+  });
+  return union(o);
 }
 
 function explode(args){
@@ -155,8 +165,9 @@ function sturdy_box(params){
     CAG.prototype.acrylic = function(thickness){
       return this.extrude({offset:[0,0,thickness]}).setColor(0.7,1,1,0.9);
     }
-
-    this.screw = function(){
+  }
+  sturdy_box.prototype = {
+    screw: function(){
       // measured
       if (Math.floor(this.hole_diameter) === 3){
         var screw_diameter = 3;
@@ -177,18 +188,17 @@ function sturdy_box(params){
                                                                             .translate([0,0,head_height/3])),
        circle({r:screw_diameter/2}).center().extrude({offset:[0,0,-Math.floor(this.case_height/2)]})
       ).setColor(0.5,0.5,0.5);
-    }
+    },
 
-    this.standoff = function(){
+    standoff: function(){
       var hex_radius = 5.26/2;
       return circle({r:hex_radius, fn:6}).center()
                   .subtract(circle({r:this.hole_size}).center())
                   .extrude({offset:[0,0,this.standoff_height]})
                   .center().setColor(1, 0.75, 0);
-    }
+    },
 
-    this.corner_piece = function(hex_hole){
-      // corner_radius, panel_thickness, hex_hole, hex_hole_size, hole_size
+    corner_piece: function(hex_hole){
       var cutout = square([this.corner_radius, this.panel_thickness]).center().translate([this.corner_radius, 0]);
       var corner = circle({r:this.corner_radius, fn:this.fn}).center()
         .subtract(cutout)
@@ -199,9 +209,9 @@ function sturdy_box(params){
           corner = corner.subtract(circle({r:this.hole_size, fn:this.fn}).center());
       }
       return corner;
-    }
+    },
 
-    this.clamping_holes = function(part){
+    clamping_holes: function(part){
       if (!part){
         part = circle({r:this.hole_size, fn:this.fn}).center();
       }
@@ -214,9 +224,9 @@ function sturdy_box(params){
 
         part.translate([this.case_length - this.corner_radius, this.case_width - this.corner_radius])
       )
-    }
+    },
 
-    this.make_slots = function(length, slot_count,  panel_thickness, reverse, slop){
+    make_slots: function(length, slot_count,  panel_thickness, reverse, slop){
       // length, slot_count,  panel_thickness, reverse, slop
       var slot_size=length/slot_count;
       var offset= reverse?slot_size:0;
@@ -229,24 +239,24 @@ function sturdy_box(params){
           .translate([2*x*slot_size + offset -slop/2, 0]));
       }
       return union(slots);
-    }
+    },
 
-    this.side = function(plate_width, slots, children){
+    side: function(plate_width, slots, children){
         return CAG.rectangle({corner2:[plate_width, this.case_height]})
             .union(this.make_slots(plate_width, slots, this.panel_thickness, true, this.slop).translate([0, this.case_height]))
             .union(this.make_slots(plate_width, slots, this.panel_thickness, true, this.slop).translate([0, -this.panel_thickness]))
             .subtract(children)
-    }
+    },
 
-    this.width_side = function(children){
+    width_side: function(children){
       return this.side(this.case_width - 3*this.corner_radius, this.width_slots, children);
-    }
+    },
 
-    this.length_side = function(children){
+    length_side: function(children){
       return this.side(this.case_length - 3*this.corner_radius, this.length_slots, children);
-    }
+    },
 
-    this.base = function(children){
+    base: function(children){
       var side_length = this.case_length - 2*this.offset_to_side;
       var side_width = this.case_width - 2*this.offset_to_side;
       var length_cutout = this.make_slots(side_length, this.length_slots, this.panel_thickness, true, this.slop);
@@ -264,9 +274,9 @@ function sturdy_box(params){
             .subtract(width_cutout
                         .translate([this.case_length - this.corner_radius + this.panel_thickness/2, this.offset_to_side]))
             .subtract(children)
-    }
+    },
 
-    this.corners = function(){
+    corners: function(){
       var rows = 4;
       var x, y;
       var pieces = [];
@@ -285,10 +295,10 @@ function sturdy_box(params){
       hex_pieces = union(hex_pieces)
                       .translate([this.corner_pieces*(2*this.corner_radius + this.part_separation/2) + this.part_separation, 0]);
       return union([pieces, hex_pieces]);
-    }
+    },
 
     // An insert for printing graphics or 3D cut patterns
-    this.paper_insert = function(){
+    paper_insert: function(){
       var box = new CAG();
       var corner_length = this.case_length - 2*this.corner_radius;
       var corner_width = this.case_width - 2*this.corner_radius;
@@ -312,9 +322,9 @@ function sturdy_box(params){
                 .union(inside_rectangle);
 
       return box;
-    }
+    },
 
-    this.box_3d = function(exploded){
+    box_3d: function(exploded){
       function corner_stack(obj){
         var stack = [];
         var x = 0;
@@ -344,34 +354,34 @@ function sturdy_box(params){
       var box = []
       // Base and Top
       box.push(
-        this.base(this.sides.top())
-            .acrylic(this.panel_thickness))
-      box.push(
-        this.base(this.sides.bottom())
+        this.base(this.sides.top(this))
             .acrylic(this.panel_thickness)
             .translate([0,0,this.case_height + this.panel_thickness]))
+      box.push(
+        this.base(this.sides.bottom(this))
+            .acrylic(this.panel_thickness))
 
       // Front and Back
       box.push(
-        this.length_side(this.sides.front())
+        this.length_side(this.sides.front(this))
             .acrylic(this.panel_thickness)
             .rotateX(90)
             .translate([this.offset_to_side, this.corner_radius + this.panel_thickness/2,this.panel_thickness]))
 
       box.push(
-        this.length_side(this.sides.back())
+        this.length_side(this.sides.back(this))
             .acrylic(this.panel_thickness)
             .rotateX(90).rotateZ(180)
             .translate([this.offset_to_side + this.side_length, this.case_width - this.corner_radius - this.panel_thickness/2,this.panel_thickness]))
 
       // Left and Right
       box.push(
-        this.width_side(this.sides.left())
+        this.width_side(this.sides.left(this))
             .acrylic(this.panel_thickness)
             .rotateX(90).rotateZ(270)
             .translate([this.corner_radius + this.panel_thickness/2, this.offset_to_side + this.side_width, this.panel_thickness]))
       box.push(
-        this.width_side(this.sides.right())
+        this.width_side(this.sides.right(this))
             .acrylic(this.panel_thickness)
             .rotateX(90).rotateZ(90)
             .translate([this.case_length - this.corner_radius - this.panel_thickness/2, this.offset_to_side, this.panel_thickness]))
@@ -419,32 +429,33 @@ function sturdy_box(params){
         box  = explode(box);
       }
       return union(box);
-    }
+    },
 
-    this.cut_layout = function(){
+    cut_layout: function(){
       var half_length = this.case_length/2;
       var half_width =  this.case_width/2;
       var space = this.part_separation
 
       return union(
       // Base and Top
-      this.base(this.sides.top())
-          .translate([-half_length, -half_width]),
-      this.base(this.sides.bottom())
+      this.base(this.sides.top(this))
           .translate([-half_length, half_width + 2*space + this.case_height]),
 
+      this.base(this.sides.bottom(this))
+          .translate([-half_length, -half_width]),
+
       // Front and Back
-      this.length_side(this.sides.front())
+      this.length_side(this.sides.front(this))
           .translate([this.offset_to_side -half_length, - half_width - this.case_height - space]),
-      this.length_side(this.sides.back())
+      this.length_side(this.sides.back(this))
           .rotateZ(180)
           .translate([this.offset_to_side + this.side_length -half_length, this.case_height + half_width + space]),
 
       // Left and Right
-      this.width_side(this.sides.left())
+      this.width_side(this.sides.left(this))
           .rotateZ(270)
           .translate([-half_length - space - this.case_height, this.side_width -half_width + this.offset_to_side]),
-      this.width_side(this.sides.right())
+      this.width_side(this.sides.right(this))
           .rotateZ(90)
           .translate([+half_length + space + this.case_height, -half_width + this.offset_to_side]),
 
@@ -452,15 +463,5 @@ function sturdy_box(params){
       this.corners()
           .translate([-half_length + this.corner_radius , -(half_width + this.case_height + this.corner_radius + 2*space )])
       )
-    }
-
-    this.text = function(my_string){
-      var z0basis =  CSG.OrthoNormalBasis.Z0Plane();
-      var l = vector_text(0,0,my_string);   // l contains a list of polylines to be drawn
-      var o = [];
-      l.forEach(function(pl) {
-         o.push(rectangular_extrude(pl, {w: 1, h: 1}).projectToOrthoNormalBasis(z0basis));   // extrude it to 3D
-      });
-      return union(o);
     }
 }
