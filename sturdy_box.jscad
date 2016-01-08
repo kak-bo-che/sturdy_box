@@ -32,7 +32,7 @@ var parameters = [
 
     { name: 'Presentation', type: 'group', caption: 'Presentation' },
     { name: 'quality', type: 'choice', caption: 'Quality', values: [0, 1], captions: ["Draft","High"], initial: 0 },
-    { name: 'flat', caption: 'Display:', type: 'choice', values: [0, 1, 2], initial: 0, captions: ["Flat", "3D", "Exploded"]},
+    { name: 'flat', caption: 'Display:', type: 'choice', values: [0, 1, 2], initial: 1, captions: ["Flat", "3D", "Exploded"]},
   ]
   return parameters;
 }
@@ -96,6 +96,31 @@ function sides(length, width, height){
     this.back = function(){return []}
     this.left = function(){return []}
     this.right = function(){return []}
+}
+
+function corner(hole_size){
+  this.hole_size = hole_size;
+}
+
+corner.prototype = {
+  radius:    this.corner_radius,
+  thickness: this.panel_thickness,
+  fn:        this.fn,
+
+  base: function(){
+    var cutout = square([this.radius, this.thickness]).center().translate([this.radius, 0]);
+    var corner = circle({r:this.radius, fn:this.fn}).center()
+      .subtract(cutout)
+      .subtract(cutout.rotateZ(90));
+  },
+
+  round: function(hole_size){
+    return base().subtract(circle({r:this.hole_size, fn:this.fn}).center());
+  },
+
+  hex: function(hole_size){
+    return base().subtract(circle({r:this.hole_size, fn:6}).center().rotateZ(15));
+  }
 }
 
 function sturdy_box(params){
@@ -217,11 +242,8 @@ function sturdy_box(params){
       }
       return union(
         part.translate([this.corner_radius, this.corner_radius]),
-
         part.translate([this.case_length - this.corner_radius, this.corner_radius]),
-
         part.translate([this.corner_radius, this.case_width - this.corner_radius]),
-
         part.translate([this.case_length - this.corner_radius, this.case_width - this.corner_radius])
       )
     },
