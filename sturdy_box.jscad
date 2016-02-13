@@ -41,7 +41,6 @@ function main(params){
   arc_resolution=(params.quality == "1")? 64:12;
   params.arc_resolution = arc_resolution
   var box = new sturdy_box(params);
-
   if (params.flat === '0'){
     return box.cut_layout().center();
   } else if (params.flat === '1') {
@@ -124,6 +123,32 @@ corner.prototype = {
 }
 
 function sturdy_box(params){
+    var screw_hardware = {
+      'M2.5': {
+        screw_diameter: 2.5,
+        hex_diameter: 5.26, // measured same as m3
+        hex_hole_diameter: 5.4,
+        head_height: 3,
+        head_diameter: 5.3,
+        key_diameter: 2.5
+      },
+      M3: {
+        screw_diameter: 3,
+        hex_diameter: 5.26,
+        hex_hole_diameter: 5.4,
+        head_height: 3,
+        head_diameter: 5.3,
+        key_diameter: 2.5
+      },
+      M4: {
+        screw_diameter: 4,
+        hex_diameter: 6.7,
+        hex_hole_diameter:6.9, // not tested
+        head_height: 4,
+        head_diameter: 7,
+        key_diameter: 3
+      }
+    }
     this.sides = new sides();
 
     // Overall Case Length
@@ -200,10 +225,9 @@ function sturdy_box(params){
         var head_diameter = 5.3;
         var key_diameter = 2.5;
       } else {
-        // these are all BS values for demonstration
         var screw_diameter = 4;
         var head_height = 4;
-        var head_diameter = 6.3;
+        var head_diameter = 7;
         var key_diameter = 3;
       }
       return union(
@@ -216,7 +240,11 @@ function sturdy_box(params){
     },
 
     standoff: function(){
-      var hex_radius = 5.26/2;
+      if (Math.floor(this.hole_diameter) === 3){
+        var hex_radius = 5.26/2;
+      } else {
+        var hex_radius = 6.7/2;
+      }
       return circle({r:hex_radius, fn:6}).center()
                   .subtract(circle({r:this.hole_size}).center())
                   .extrude({offset:[0,0,this.standoff_height]})
